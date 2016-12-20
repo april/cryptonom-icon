@@ -4,7 +4,7 @@ Creating diagrams to describe cryptographic concepts is tough, but it doesn't ha
 
 All diagrams are created in [Affinity Designer](https://affinity.serif.com/en-us/designer/), exported to SVG, and then optimized with [svgo](https://github.com/svg/svgo).
 
-These icons were original created for use in my [cryptography 101](https://marumari.github.io/crypto-presentation/#/), which contains many examples of their use in various diagrams. An (extremely primitive) [gallery](https://marumari.github.io/cryptnomicon/) is available, for previewing the included icons.
+These icons were original created for use in my [cryptography 101](https://marumari.github.io/crypto-presentation/#/) presentation, which contains many examples of their uses. An (extremely primitive) [gallery](https://marumari.github.io/cryptnomicon/) of these images is available, for previewing the included icons.
 
 # Attributions
 
