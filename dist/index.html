@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Kuvia</title>
+    <meta charset="utf-8">
+    <style>html, body {
+  margin: 0;
+  padding: 0;
+  background-color: #eee;
+  font-family: sans-serif;
+  background-color: #343344;
+}
+
+#topbar {
+  position: fixed;
+  margin: 0;
+  top: 0;
+  left: 0;
+  opacity: 0.9;
+  width: 100%;
+  font-size: 20px;
+  background-color: #44d;
+  color: #fff;
+}
+
+#topbar ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  height: 30px;
+}
+
+#topbar ul li {
+  margin: 0;
+  display: inline-block;
+}
+
+#topbar ul li a {
+  padding: 4px;
+  color: inherit;
+  text-decoration: inherit;
+}
+
+#topbar ul li a:hover {
+  background-color: #fff;
+  color: #44d;
+}
+
+#sidebar {
+  top: 30px;
+  left: 0;
+  bottom: 0;
+  position: fixed;
+  max-width: 300px;
+  background-color: #44d;
+  color: #111;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  white-space: nowrap;
+  display: none;
+  opacity: 0.9;
+}
+#sidebar.show {
+  display: block;
+}
+
+#sidebar ul {
+  margin: 0 0 10px 0;
+}
+
+#sidebar a {
+  text-decoration: none;
+  padding: 5px;
+  display: block;
+  color: #fff;
+}
+
+#sidebar a:hover {
+  background-color: #fff;
+  color: #44d;
+}
+
+#linksarea {
+  padding: 0;
+  margin: 10px 0;
+  list-style: none;
+}
+
+#linksarea .show {
+  background-color: #343344;
+  color: #fff;
+}
+
+#imgarea {
+  margin-top: 30px;
+}
+
+#imgarea img {
+  display: none;
+}
+
+#imgarea.zoom-min img {
+  max-width: 100%;
+  max-height: 95vh;
+}
+
+#imgarea.zoom-med img {
+  max-width: 100%;
+}
+
+#imgarea.zoom-max img {
+  max-width: none;
+}
+
+#imgarea .show {
+  display: block;
+}
+
+#noimageswarning {
+  display: none;
+  margin-top: 30px;
+}
+</style>
+    <link rel="stylesheet" type="text/css" href="index.css">
+    <script type="application/javascript">window.imagelist = ["alice-sad.svg", "alice.svg", "associated-data.svg", "blank-sheet.svg", "bob-sad.svg", "bob.svg", "certificate-alice-signed.svg", "certificate-bob-signed.svg", "certificate-eve-signed.svg", "certificate-intermediate-ca-signed.svg", "certificate-mallory-signed.svg", "certificate-root-signed.svg", "cipher-suite.svg", "cipher-suites.svg", "ciphertext-invalid.svg", "ciphertext.svg", "decrypt.svg", "diagram-aead-decrypt.svg", "diagram-aead-encrypt.svg", "diagram-diffie-hellman-key-exchange.svg", "diagram-symmetric-key-exchange-five-parties.svg", "diffie-hellman-parameters-alice.svg", "diffie-hellman-parameters-bob.svg", "diffie-hellman-parameters-public-alice.svg", "diffie-hellman-parameters-public-bob.svg", "digital-signature-invalid.svg", "digital-signature.svg", "encrypt.svg", "eve-sad.svg", "eve.svg", "gibberish-invalid.svg", "gibberish.svg", "hash.svg", "hashing.svg", "hmac-invalid.svg", "hmac.svg", "key-mac-alice.svg", "key-mac-bob.svg", "key-private-alice.svg", "key-private-bob.svg", "key-private-invalid.svg", "key-private-mallory.svg", "key-private-private.svg", "key-private.svg", "key-public-alice.svg", "key-public-bob.svg", "key-public-certificate-authority.svg", "key-public-eve.svg", "key-public-intermediate.svg", "key-public-mallory.svg", "key-public-public.svg", "key-public-root.svg", "key-public.svg", "key-symmetric-alice.svg", "key-symmetric-bad.svg", "key-symmetric-bob.svg", "key-symmetric-mallory.svg", "key-symmetric.svg", "mac-red.svg", "mac.svg", "mallory-happy.svg", "mallory.svg", "master-secret.svg", "message-digest-encrypted.svg", "message-digest-invalid.svg", "message-digest.svg", "plaintext-invalid.svg", "plaintext.svg", "random-bob.svg", "randomness-alice.svg", "speech-bubble.svg", "tag.svg", "thought-bubble.svg", "transfer.svg", "xor.svg"];</script>
+    <script type="application/javascript" src="index.js"></script>
+    <script type="application/javascript">(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+var utils = require('./utils');
+
+function isIE() {
+  return (window.navigator.appVersion.indexOf("MSIE") !== -1);
+}
+
+function byIds(ids) {
+  return utils.mapForKeys(ids, byId);
+}
+
+function byId(id) {
+  return window.document.getElementById(id);
+}
+
+function byClass(className) {
+  return window.document.getElementsByClassName(className);
+}
+
+function onLoad(fun) {
+  var doc = window.document;
+  var retry = function() { onLoad(fun); }
+  if (/in/.test(doc.readyState)) {
+    if (isIE())
+      window.setTimeout(retry, 9);
+    else
+      window.setTimeout(retry, 9, false);
+  } else {
+    fun();
+  }
+}
+
+function noModifiers(e) {
+  return !e.ctrkKey && !e.shiftKey && !e.altKey && !e.metaKey;
+}
+
+function onKeyDown(handlermap) {
+  onEvent(window, 'keydown', function(e) {
+    var handler = handlermap[e.keyCode];
+    if (typeof handler === 'function' && noModifiers(e)) {
+      return handler(e);
+    }
+    return true;
+  });
+}
+
+function onEvent(obj, evname, fun) {
+  var handler = function(e) {
+    var r = fun(e);
+    if (r !== true) e.preventDefault();
+  };
+  if (obj instanceof NodeList) {
+    utils.forEach(obj, function(el) {
+      addevent(el, evname, handler);
+    });
+  } else {
+    addevent(obj, evname, handler);
+  }
+}
+
+function addevent(el, evname, handler) {
+  if (typeof el.addEventListener === 'function') {
+    el.addEventListener(evname, handler, false);
+  } else if (typeof el.attachEvent === 'function') {
+    el.attachEvent('on'+evname, handler);
+  } else {
+    console.log('Failed to attach event', el);
+  }
+}
+
+function hasCssClass(element, cssClass) {
+  return element.className.indexOf(cssClass) >= 0;
+}
+
+function addCssClass(element, cssClass) {
+  element.className += ' ' + cssClass;
+}
+
+function removeCssClass(element, cssClass) {
+  var re = new RegExp('(\\s|^)'+cssClass+'(\\s|$)');
+  element.className = element.className.replace(re, '');
+}
+
+function removeCssClassPrefix(element, cssClassPrefix) {
+  var re = new RegExp('(\\s|^)'+cssClassPrefix+'-\\w+(\\s|$)');
+  element.className = element.className.replace(re, '');
+}
+
+function removeNode(node) {
+  if (node.parentNode) {
+    node.parentNode.removeChild(node);
+  }
+}
+
+function toggleCssClass(element, cssClass) {
+  if (hasCssClass(element, cssClass)) {
+    removeCssClass(element, cssClass);
+  } else {
+    addCssClass(element, cssClass);
+  }
+}
+
+function hide(element) {
+  if (element) {
+    element.style.display = 'none';
+  }
+}
+
+function show(element, displayType) {
+  if (typeof displayType !== 'string') {
+    displayType = 'inline';
+  }
+  if (element) {
+    element.style.display = displayType;
+  }
+}
+
+function clearNode(node) {
+  while (node.hasChildNodes()) {
+    node.removeChild(node.lastChild);
+  }
+}
+
+function fragment() {
+  return window.document.createDocumentFragment();
+}
+
+function element(el) {
+  return window.document.createElement(el);
+}
+
+function text(s) {
+  return window.document.createTextNode(s);
+}
+
+function setChild(parent, child) {
+  clearNode(parent);
+  parent.appendChild(child);
+}
+
+function xhr() {
+  if (typeof XMLHttpRequest !== 'undefined') {
+    return new XMLHttpRequest();
+  } else {
+    return new ActiveXObject("Microsoft.XMLHTTP");
+  }
+}
+
+function ajax(opts) {
+  var x = xhr();
+
+  x.onreadystatechange = function() {
+    if (x.readyState === 4) {
+      opts.callback(x);
+    }
+  };
+
+  x.open(opts.method || 'GET', opts.url, true);
+
+  if (typeof opts.data !== 'undefined') {
+    x.send(opts.data);
+  } else {
+    x.send();
+  }
+}
+
+function setHashLocation(l) {
+  window.location = '#' + l;
+}
+
+function getHashLocation() {
+  return window.location.hash.substring(1);
+}
+
+exports.byIds = byIds;
+exports.byId = byId;
+exports.byClass = byClass;
+exports.onLoad = onLoad;
+exports.onKeyDown = onKeyDown;
+exports.ajax = ajax;
+exports.onEvent = onEvent;
+exports.fragment = fragment;
+exports.element = element;
+exports.text = text;
+exports.setChild = setChild;
+exports.hasCssClass = hasCssClass;
+exports.addCssClass = addCssClass;
+exports.removeCssClass = removeCssClass;
+exports.removeCssClassPrefix = removeCssClassPrefix;
+exports.removeNode = removeNode;
+exports.toggleCssClass = toggleCssClass;
+exports.hide = hide;
+exports.show = show;
+exports.clearNode = clearNode;
+exports.setHashLocation = setHashLocation;
+exports.getHashLocation = getHashLocation;
+
+
+},{"./utils":7}],2:[function(require,module,exports){
+var StateList = require('./statelist');
+var log = require('./logging');
+
+function imageHashFunction(image) {
+  return image.src;
+};
+
+function Gallery(display, imageFactory) {
+  var self = this;
+  var images = new StateList([], imageHashFunction);
+  var zoom = new StateList(['min', 'med', 'max']);
+
+  self.initialize = function(urls, selectedImage) {
+    setNoImagesWarning(urls.length === 0);
+    images.setList(createImages(urls));
+    display.setImages(images.list);
+
+    if (typeof selectedImage === 'number') {
+      self.setIndex(selectedImage);
+    } else if (typeof selectedImage === 'string') {
+      self.setById(selectedImage);
+    }
+  };
+
+  function setNoImagesWarning(visible) {
+    if (visible) display.showNoImagesWarning();
+    else display.hideNoImagesWarning();
+  }
+
+  function createImages(urls) {
+    var createImage = function(url) {
+      var image = imageFactory(url, self.setNextZoom, self.invalidImage);
+      image.addLinkOnClick(function() { showImage(image); });
+      return image;
+    };
+
+    return urls.map(createImage);
+  }
+
+  function updateImage(f, noLocationUpdate) {
+    hideCurrentImage();
+    f().show();
+    setImageInfo(noLocationUpdate);
+  }
+
+  function currentImage() {
+    return images.currentItem();
+  }
+
+  function showImage(image) {
+    updateImage(function() { return images.setCurrentItem(image); });
+  }
+
+  function hideCurrentImage() {
+    var image = currentImage();
+    if (image) image.hide();
+  }
+
+  function setImageInfo(noLocationUpdate) {
+    var image = currentImage();
+    if (image && !noLocationUpdate) {
+      display.setImageLocation(imageHashFunction(image));
+    }
+    display.setImageInfoHtml(imageInfoText());
+  }
+
+  function imageInfoText() {
+    var current = images.currentIndex + 1;
+    var last = images.lastIndex() + 1;
+    return current + '/' + last;
+  }
+
+  function isMaxZoom() {
+    return zoom.currentItem() === 'max';
+  }
+
+  self.invalidImage = function(image) {
+    var nextImage = images.removeItem(image);
+    if (image) {
+      log('Invalid or missing image: ', image.src);
+      image.removeElements();
+    }
+    if (nextImage) {
+      showImage(nextImage);
+    }
+  };
+
+  self.next = function(checkZoom) {
+    if (checkZoom && isMaxZoom()) return true;
+
+    updateImage(function() { return images.next(); });
+  };
+
+  self.previous = function(checkZoom) {
+    if (checkZoom && isMaxZoom()) return true;
+
+    updateImage(function() { return images.previous(); });
+  };
+
+  self.setNextZoom = function() {
+    display.setZoom(zoom.next());
+  };
+
+  self.setIndex = function(index) {
+    var isCurrentImage = images.currentIndex === index;
+
+    updateImage(
+        function() { return images.setCurrentIndex(index); },
+        isCurrentImage);
+  };
+
+  self.setById = function(id) {
+    var isCurrentImage = images.currentKey === id;
+
+    updateImage(
+        function() { return images.setCurrentId(id); },
+        isCurrentImage);
+  };
+
+  display.addNextHandler(self.next);
+  display.addPreviousHandler(self.previous);
+  display.addZoomHandler(self.setNextZoom);
+}
+
+module.exports = Gallery;
+
+},{"./logging":4,"./statelist":6}],3:[function(require,module,exports){
+var dom = require('./domtools');
+
+function Image(src, onclick, onerror) {
+  var self = this;
+  self.src = src;
+  self.text = createTextFromSrc(src);
+  self.image = createImageElement(onclick, onerror.bind(self, self));
+  self.link = createTextLink(self.text);
+
+  self.loadImage = function() {
+    if (self.image.src !== self.src) {
+      self.image.src = self.src;
+    }
+  };
+
+  self.hide = function() {
+    dom.removeCssClass(self.image, 'show');
+    dom.removeCssClass(self.link, 'show');
+  };
+
+  self.show = function() {
+    self.loadImage();
+    dom.addCssClass(self.image, 'show');
+    dom.addCssClass(self.link, 'show');
+  };
+
+  self.setImageOnClick = function(handler) {
+    self.image.onclick = handler;
+  };
+
+  self.addLinkOnClick = function(handler) {
+    dom.onEvent(self.link, 'click', handler);
+  };
+
+  self.removeElements = function() {
+    dom.removeNode(self.image);
+    dom.removeNode(self.link);
+  };
+}
+
+function createTextFromSrc(src) {
+  return decodeURI(src.substring(src.lastIndexOf('/')+1, src.length));
+}
+
+function createTextLink(text) {
+  var link = dom.element('a');
+  link.href = '#';
+  link.appendChild(dom.text(text));
+  link.title = text;
+  return link;
+}
+
+function createImageElement(onclick, onerror) {
+  var img = dom.element('img');
+  if (typeof onclick === 'function') {
+    img.onclick = onclick;
+  }
+  if (typeof onerror === 'function') {
+    img.onerror = function() {
+      img.onerror = undefined; // Ensure onerror is called only once
+      onerror();
+    };
+  }
+  return img;
+}
+
+module.exports = Image;
+
+},{"./domtools":1}],4:[function(require,module,exports){
+module.exports = function() {
+  if (window.console && window.console.log) {
+    // console is not always available in some browsers
+    console.log.apply(console, arguments);
+  }
+}
+
+},{}],5:[function(require,module,exports){
+(function() {
+  var Gallery = require('./gallery'),
+      view = require('./view'),
+      Image = require('./image'),
+      domtools = require('./domtools');
+
+  function imageFactory(src, onclick, onerror) {
+    return new Image(src, onclick, onerror);
+  }
+
+  var display = view.createView(),
+      gallery = new Gallery(display, imageFactory);
+
+  function loadGallery(images) {
+    display.initialize();
+    gallery.initialize(images, getImageHash());
+    window.kuvia = gallery;
+  }
+
+  function getImageHash() {
+    return domtools.getHashLocation();
+  }
+
+  function loadAjaxGallery(url) {
+    domtools.ajax({
+      url: url,
+      callback: function(xhr) {
+        var images = xhr.status === 200 ? JSON.parse(xhr.responseText) : [];
+        loadGallery(images);
+      }
+    });
+  }
+
+  domtools.onLoad(function() {
+    var images = window.imagelist;
+
+    if (typeof images === 'string') {
+      loadAjaxGallery(images);
+    } else if (images && images.length > 0) {
+      loadGallery(images);
+    } else {
+      loadGallery([]);
+    }
+  });
+
+  domtools.onEvent(window, "hashchange", function() {
+    gallery.setById(getImageHash());
+  });
+}());
+
+},{"./domtools":1,"./gallery":2,"./image":3,"./view":8}],6:[function(require,module,exports){
+function StateList(listItems, hashFunction) {
+  var self = this;
+  self.currentIndex = 0;
+  var isHashAvailable = typeof hashFunction === 'function';
+
+  self.setList = function(items) {
+    self.list = items;
+    setIndex(0, 0);
+    refreshKeyIndex();
+  };
+
+  function setIndex(index, fallback) {
+    if (isValidIndex(index)) {
+      self.currentIndex = index;
+    } else {
+      self.currentIndex = isValidIndex(fallback) ? fallback : 0;
+    }
+    updateCurrentKey();
+    return self.currentItem();
+  }
+
+  function isValidIndex(index) {
+    return typeof index === 'number' && !isIndexOutOfBounds(index);
+  }
+
+  function isIndexOutOfBounds(index) {
+    return isNaN(index) || index < 0 || index > self.lastIndex();
+  }
+
+  function refreshKeyIndex() {
+    self.indexByKey = Object.create(null);
+    if (isHashAvailable) {
+      self.list.forEach(function(item, index) {
+        var key = hashFunction(item);
+        self.indexByKey[key] = index;
+      });
+    }
+  }
+
+  function updateCurrentKey() {
+    if (isHashAvailable) {
+      var item = self.currentItem();
+      if (item) {
+        self.currentKey = hashFunction(item);
+      }
+    }
+  }
+
+  function getByKey(key) {
+    if (!isHashAvailable) {
+      throw 'Can\'t get by ID. No hash function set for state list!';
+    }
+    return self.indexByKey[key];
+  }
+
+  function getByItem(item) {
+    return getByKey(hashFunction(item));
+  }
+
+  function removeByIndex(index) {
+    self.list.splice(index, 1);
+    refreshKeyIndex();
+    return setIndex(self.currentIndex, self.lastIndex());
+  }
+
+  self.currentItem = function() {
+    return self.list[self.currentIndex];
+  };
+
+  self.next = function() {
+    return setIndex(self.currentIndex + 1, 0);
+  };
+
+  self.lastIndex = function() {
+    return self.list.length - 1;
+  };
+
+  self.previous = function() {
+    return setIndex(self.currentIndex - 1, self.lastIndex());
+  };
+
+  self.setCurrentItem = function(item) {
+    var index = getByItem(item);
+    return self.setCurrentIndex(index);
+  };
+
+  self.setCurrentId = function(id) {
+    var index = getByKey(id);
+    return self.setCurrentIndex(index);
+  };
+
+  self.setCurrentIndex = function(index) {
+    return setIndex(index, self.currentIndex);
+  };
+
+  self.removeItem = function(item) {
+    var index = getByItem(item);
+    if (typeof index === 'number') {
+      return removeByIndex(index);
+    }
+  };
+
+  // init
+  self.setList(listItems);
+}
+
+module.exports = StateList;
+
+},{}],7:[function(require,module,exports){
+var forEach = function(obj, cb) {
+  for (var i = 0; i < obj.length; i++) {
+    cb(obj[i], i, obj);
+  }
+};
+
+var mapForKeys = function(items, cb) {
+  var obj = {};
+  forEach(items, function(item) {
+    obj[item] = cb(item);
+  });
+  return obj;
+};
+
+exports.forEach = forEach;
+exports.mapForKeys = mapForKeys;
+
+},{}],8:[function(require,module,exports){
+var dom = require('./domtools');
+var utils = require('./utils');
+
+function callEach(items) {
+  var args = Array.prototype.slice.call(arguments, 1);
+  var results = items.map(function(item) { return item.apply(null, args) });
+  return results.every(function(v) { return v === true; });
+}
+
+var elementIds = ['imginfo', 'imgarea', 'linksarea', 'sidebar'];
+
+var createView = function() {
+  var self = {},
+      elements = {},
+      nextHandlers = [],
+      previousHandlers = [],
+      zoomHandlers = [];
+
+  self.initialize = function() {
+    elements = dom.byIds(elementIds);
+    addClassClickHandlers([
+      ['next_image', callNextHandlers.bind(null, false)],
+      ['previous_image', callPreviousHandlers.bind(null, false)],
+      ['toggle_sidebar', toggleSidebar],
+      ['toggle_zoom', callZoomHandlers]
+    ]);
+    dom.onKeyDown({
+      32: toggleSidebar,
+      75: callPreviousHandlers.bind(null, false),
+      74: callNextHandlers.bind(null, false),
+      37: callPreviousHandlers.bind(null, true),
+      39: callNextHandlers.bind(null, true),
+      90: callZoomHandlers
+    });
+  };
+
+  function addClassClickHandlers(handlers) {
+    utils.forEach(handlers, function(h) {
+      addClickHandler(dom.byClass(h[0]), h[1]);
+    });
+  }
+
+  function addClickHandler(element, handler) {
+    var addclickhandler = function(el) {
+      dom.onEvent(el, 'click', handler);
+    };
+
+    if (element instanceof HTMLCollection) {
+      utils.forEach(element, addclickhandler);
+    } else {
+      addclickhandler(element);
+    }
+  }
+
+  function toggleSidebar() {
+    dom.toggleCssClass(elements.sidebar, 'show');
+  };
+
+  var callNextHandlers = callEach.bind(null, nextHandlers);
+  var callPreviousHandlers = callEach.bind(null, previousHandlers);
+  var callZoomHandlers = callEach.bind(null, zoomHandlers);
+
+  self.addNextHandler = nextHandlers.push.bind(nextHandlers);
+  self.addPreviousHandler = previousHandlers.push.bind(previousHandlers);
+  self.addZoomHandler = zoomHandlers.push.bind(zoomHandlers);
+
+  self.setImageInfoHtml = function(html) {
+    elements.imginfo.innerHTML = html;
+  };
+
+  self.setImages = function(images) {
+    var linksareaFragment = dom.fragment(),
+        imgareaFragment = dom.fragment();
+
+    utils.forEach(images, function(image) {
+      linksareaFragment.appendChild(createListElement(image.link));
+      imgareaFragment.appendChild(image.image);
+    });
+
+    dom.setChild(elements.linksarea, linksareaFragment);
+    dom.setChild(elements.imgarea, imgareaFragment);
+  };
+
+  function createListElement(element) {
+    var listElement = dom.element('li');
+    listElement.appendChild(element);
+    return listElement;
+  }
+
+  self.showNoImagesWarning = function() {
+    var warning = dom.byId('noimageswarning');
+    dom.show(warning, 'block');
+  };
+
+  self.hideNoImagesWarning = function() {
+    var warning = dom.byId('noimageswarning');
+    dom.hide(warning);
+  };
+
+  self.setZoom = function(zoomMode) {
+    dom.removeCssClassPrefix(elements.imgarea, 'zoom');
+    dom.addCssClass(elements.imgarea, 'zoom-' + zoomMode);
+  };
+
+  self.setImageLocation = function(l) {
+    dom.setHashLocation(l);
+  };
+
+  return self;
+};
+
+exports.createView = createView;
+
+},{"./domtools":1,"./utils":7}]},{},[5]);
+</script>
+    <base target="_blank">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  </head>
+  <body>
+    <h1 id="noimageswarning">No images found</h1>
+    <div id="topbar">
+      <ul>
+        <li><a href="#" title="Toggle sidebar (space)" class="toggle_sidebar">&#9776;</a></li>
+        <li><a href="#" title="Next (J)" class="next_image">&#9660;</a></li>
+        <li><a href="#" title="Previous (K)" class="previous_image">&#9650;</a></li>
+        <li><a href="#" title="Zoom (Z)" class="toggle_zoom">[Z]</a></li>
+        <li><span id="imginfo"></span></li>
+      </ul>
+    </div>
+    <div id="sidebar">
+      <ul id="linksarea"></ul><a href="http://github.com/Lepovirta/kuvia">Kuvia@GitHub</a>
+    </div>
+    <div id="imgarea" class="zoom-min"></div>
+  </body>
+</html>
