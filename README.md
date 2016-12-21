@@ -1,6 +1,6 @@
 # Cryptography iconography
 
-Creating diagrams to describe cryptographic concepts is tough, but it doesn't have to be.  The cryptnomicon project aims to provide a set of freely available icons and diagrams for use in whatever projects and presentations you might have.
+Creating diagrams to describe cryptographic concepts is tough, but it doesn't have to be.  The cryptonom-icon project aims to provide a set of freely available icons and diagrams for use in whatever projects and presentations you might have.
 
 All diagrams are created in [Affinity Designer](https://affinity.serif.com/en-us/designer/), exported to SVG, and then optimized with [svgo](https://github.com/svg/svgo).
 
