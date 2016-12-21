@@ -10,7 +10,7 @@ These icons were original created for use in my [cryptography 101](https://marum
 
 This presentation uses a small number of copyrighted images and texts. Without the work of these contributors, this presentation would not be possible. See [ATTRIBUTIONS.md](ATTRIBUTIONS.md) for additional information, and thanks to everyone who contributed!
 
-The actual [Cryptonomicon](https://en.wikipedia.org/wiki/Cryptonomicon) is a fantastic work of fiction by Neal Stephenson, and I highly recommend that you purchase it.
+[Cryptonomicon](https://en.wikipedia.org/wiki/Cryptonomicon) is a fantastic work of fiction by Neal Stephenson, and I highly recommend that you purchase and read it.
 
 # License
 
